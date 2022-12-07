@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -25,6 +24,9 @@ const (
 	API_FOLLOWER_INFO     string = API_BASE + "users/show.json"
 )
 
+var (
+	ErrNotAuth = errors.New("no client OAuth")
+)
 type Client struct {
 	HttpConn *http.Client
 }
@@ -35,12 +37,12 @@ func (c *Client) HasAuth() bool {
 
 func (c *Client) BasicQuery(queryString string) ([]byte, error) {
 	if c.HttpConn == nil {
-		return nil, errors.New("No Client OAuth")
+		return nil, ErrNotAuth
 	}
 
 	response, err := c.HttpConn.Get(queryString)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer response.Body.Close()
 
@@ -53,6 +55,9 @@ func (c *Client) QueryUserTimelineByUserID(user_id string) (UserTimeline, []byte
 	requesURL := fmt.Sprintf("%s?user_id=%s", API_USER_TIMELINE, user_id)
 	data, err := c.BasicQuery(requesURL)
 	ret := UserTimeline{}
+	if err != nil {
+		return ret, nil, err
+	}
 	err = json.Unmarshal(data, &ret)
 	return ret, data, err
 }
@@ -62,6 +67,9 @@ func (c *Client) QueryUserTimelineByScreenName(ScreeName string) (UserTimeline, 
 	requesURL := fmt.Sprintf("%s?screen_name=%s", API_USER_TIMELINE, ScreeName)
 	data, err := c.BasicQuery(requesURL)
 	ret := UserTimeline{}
+	if err != nil {
+		return ret, nil, err
+	}
 	err = json.Unmarshal(data, &ret)
 	return ret, data, err
 }
@@ -71,6 +79,9 @@ func (c *Client) QueryMentionsTimeline(count int) (TimelineTweets, []byte, error
 	requesURL := fmt.Sprintf("%s?count=%d", API_MENTIONS_TIMELINE, count)
 	data, err := c.BasicQuery(requesURL)
 	ret := TimelineTweets{}
+	if err != nil {
+		return ret, nil, err
+	}
 	err = json.Unmarshal(data, &ret)
 	return ret, data, err
 }
@@ -80,6 +91,9 @@ func (c *Client) QueryTimeLine(count int) (MentionsTimeline, []byte, error) {
 	requesURL := fmt.Sprintf("%s?count=%d", API_TIMELINE, count)
 	data, err := c.BasicQuery(requesURL)
 	ret := MentionsTimeline{}
+	if err != nil {
+		return ret, nil, err
+	}
 	err = json.Unmarshal(data, &ret)
 	return ret, data, err
 }
@@ -89,6 +103,9 @@ func (c *Client) QueryFollower(count int) (Followers, []byte, error) {
 	requesURL := fmt.Sprintf("%s?count=%d", API_FOLLOWERS_LIST, count)
 	data, err := c.BasicQuery(requesURL)
 	ret := Followers{}
+	if err != nil {
+		return ret, nil, err
+	}
 	err = json.Unmarshal(data, &ret)
 	return ret, data, err
 }
@@ -98,6 +115,9 @@ func (c *Client) QueryFollowerIDs(count int) (FollowerIDs, []byte, error) {
 	requesURL := fmt.Sprintf("%s?count=%d", API_FOLLOWERS_IDS, count)
 	data, err := c.BasicQuery(requesURL)
 	var ret FollowerIDs
+	if err != nil {
+		return ret, nil, err
+	}
 	err = json.Unmarshal(data, &ret)
 	return ret, data, err
 }
@@ -107,6 +127,9 @@ func (c *Client) QueryFollowerById(id int) (UserDetail, []byte, error) {
 	requesURL := fmt.Sprintf("%s?user_id=%d", API_FOLLOWER_INFO, id)
 	data, err := c.BasicQuery(requesURL)
 	var ret UserDetail
+	if err != nil {
+		return ret, nil, err
+	}
 	err = json.Unmarshal(data, &ret)
 	return ret, data, err
 }
